@@ -48,9 +48,6 @@ app.delete('/todos/:id', function(req, res) {
 	var requested = parseInt(req.params.id);
 
 	var matched = _.findWhere(todos, {id: requested});
-	console.log(todos);
-	console.log(requested);
-	console.log(matched);
 	if(matched) {
 		todos = _.without(todos, matched);
 		res.json(matched);
