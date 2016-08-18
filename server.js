@@ -56,6 +56,33 @@ app.delete('/todos/:id', function(req, res) {
 	}
 });
 
+app.put('/todos/:id', function(req, res) {
+	var requested = parseInt(req.params.id);
+	var matched = _.findWhere(todos, {id: requested});
+	var body = _.pick(req.body, 'description', 'completed');
+	var validAttributes = {};
+
+	if(!matched) {
+		return res.status(404).json({"error": "No todo found with that ID"});
+	}
+
+	if(body.hasOwnProperty('completed') && _.isBoolean(body.completed)) {
+		validAttributes.completed = body.completed;
+	}else if(body.hasOwnProperty('completed')) {
+		return res.status(400).send();
+	}
+
+	if(body.hasOwnProperty('description') && _.isString(body.description) && body.description.trim().length > 0) {
+		validAttributes.description = body.description.trim();
+	}else if(body.hasOwnProperty('description')) {
+		return res.status(400).send();
+	}
+
+	_.extend(matched, validAttributes);
+
+	res.json(matched);
+});
+
 app.listen(PORT, function() {
 	console.log('Todo API Server started on port '+PORT);
 });
