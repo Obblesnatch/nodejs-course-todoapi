@@ -28,11 +28,19 @@ app.get('/todos', function(req, res) {
 		}
 	}
 
-	if(query.hasOwnProperty('description')) {
-		search.description = decodeURIComponent(query.description);
+	filtered = _.where(filtered, search);
+
+	if(filtered.length > 0 && query.hasOwnProperty('q') && query.q.length > 0) {
+		var description = decodeURIComponent(query.q).toLowerCase();
+		filtered = _.filter(filtered, function(todo) {
+			if(todo.description.toLowerCase().indexOf(description) === -1){
+				return 0; 
+			}else {
+				return 1;
+			}
+		})
 	}
 
-	filtered = _.where(filtered, search);
 
 	res.json(filtered);
 });
