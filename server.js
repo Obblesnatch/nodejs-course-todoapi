@@ -16,7 +16,25 @@ app.get('/', function(req, res) {
 });
 
 app.get('/todos', function(req, res) {
-	res.json(todos);
+	var query = req.query;
+	var filtered = todos;
+
+	var search = {};
+	if(query.hasOwnProperty('completed')) {
+		if(query.completed === 'true') {
+			search.completed = true;
+		}else if(query.completed === 'false') {
+			search.completed = false;
+		}
+	}
+
+	if(query.hasOwnProperty('description')) {
+		search.description = decodeURIComponent(query.description);
+	}
+
+	filtered = _.where(filtered, search);
+
+	res.json(filtered);
 });
 
 app.get('/todos/:id', function(req, res) {
@@ -82,6 +100,8 @@ app.put('/todos/:id', function(req, res) {
 
 	res.json(matched);
 });
+
+
 
 app.listen(PORT, function() {
 	console.log('Todo API Server started on port '+PORT);
