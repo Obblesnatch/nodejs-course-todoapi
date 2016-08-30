@@ -20,17 +20,17 @@ app.get('/', function(req, res) {
 app.get('/todos', function(req, res) {
 	var query = req.query;
 	var search = {};
-	if(query.hasOwnProperty('completed')) {
-		if(query.completed === 'true') {
+	if (query.hasOwnProperty('completed')) {
+		if (query.completed === 'true') {
 			search.completed = true;
-		}else if(query.completed === 'false') {
+		} else if (query.completed === 'false') {
 			search.completed = false;
 		}
 	}
 
-	if(query.hasOwnProperty('q') && query.q.length > 0) {
+	if (query.hasOwnProperty('q') && query.q.length > 0) {
 		search.description = {
-			$like: '%'+decodeURIComponent(query.q).toLowerCase()+'%'
+			$like: '%' + decodeURIComponent(query.q).toLowerCase() + '%'
 		};
 	}
 
@@ -47,9 +47,9 @@ app.get('/todos/:id', function(req, res) {
 	var requested = parseInt(req.params.id);
 
 	db.todo.findById(requested).then(function(todo) {
-		if(todo) {
+		if (todo) {
 			res.json(todo.toJSON());
-		}else {
+		} else {
 			res.status(404).send('No todo exists with this ID');
 		}
 	}, function(err) {
@@ -76,10 +76,10 @@ app.delete('/todos/:id', function(req, res) {
 			id: requested
 		}
 	}).then(function(num) {
-		if(num === 0) {
+		if (num === 0) {
 			res.status(404).send();
-		}else {
-			res.send('Deleted '+num+' todo(s)');
+		} else {
+			res.send('Deleted ' + num + ' todo(s)');
 		}
 	}, function(err) {
 		res.status(500).json(err);
@@ -91,32 +91,32 @@ app.put('/todos/:id', function(req, res) {
 	var body = _.pick(req.body, 'description', 'completed');
 	var validAttributes = {};
 
-	if(body.hasOwnProperty('completed')) {
+	if (body.hasOwnProperty('completed')) {
 		validAttributes.completed = body.completed;
 	}
 
-	if(body.hasOwnProperty('description')) {
+	if (body.hasOwnProperty('description')) {
 		validAttributes.description = body.description.trim();
 	}
 
 	db.todo.findById(requested).then(function(todo) {
-		if(todo) {
-			return todo.update(validAttributes);
-		}else {
+		if (todo) {
+			todo.update(validAttributes).then(function(todo) {
+				res.json(todo.toJSON());
+			}, function(err) {
+				res.status(400).json(err);
+			});
+		} else {
 			res.status(404).send()
 		}
 	}, function(err) {
 		res.status(500).send();
-	}).then(function(todo) {
-		res.json(todo.toJSON());
-	}, function (err) {
-		res.status(400).json(err);
-	})
+	});
 });
 
 
 db.sequelize.sync().then(function() {
 	app.listen(PORT, function() {
-		console.log('Todo API Server started on port '+PORT);
+		console.log('Todo API Server started on port ' + PORT);
 	});
 });
