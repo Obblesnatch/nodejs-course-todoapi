@@ -64,7 +64,7 @@ app.post('/todos', function(req, res) {
 	db.todo.create(body).then(function(todo) {
 		res.json(todo.toJSON());
 	}, function(err) {
-		res.status(500).json(err);
+		res.status(400).json(err);
 	});
 });
 
@@ -122,7 +122,7 @@ app.post('/users', function(req, res) {
 	db.user.create(body).then(function(user) {
 		res.json(user.toJSON());
 	}, function(err) {
-		res.status(500).json(err);
+		res.status(400).json(err);
 	});
 });
 
