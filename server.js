@@ -115,6 +115,18 @@ app.put('/todos/:id', function(req, res) {
 });
 
 
+app.post('/users', function(req, res) {
+	var body = _.pick(req.body, 'email', 'password');
+
+	var response = {};
+	db.user.create(body).then(function(user) {
+		res.json(user.toJSON());
+	}, function(err) {
+		res.status(500).json(err);
+	});
+});
+
+
 db.sequelize.sync().then(function() {
 	app.listen(PORT, function() {
 		console.log('Todo API Server started on port ' + PORT);
