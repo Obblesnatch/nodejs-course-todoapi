@@ -39,7 +39,7 @@ app.get('/todos', function(req, res) {
 	}).then(function(todos) {
 		res.json(todos);
 	}, function(err) {
-		res.status(400).json(err);
+		res.status(500).json(err);
 	});
 });
 
@@ -50,10 +50,10 @@ app.get('/todos/:id', function(req, res) {
 		if(todo) {
 			res.json(todo.toJSON());
 		}else {
-			res.json({status: 0, message: 'No todo exists with this ID'});
+			res.status(404).send('No todo exists with this ID');
 		}
 	}, function(err) {
-		res.status(400).json(err);
+		res.status(500).json(err);
 	});
 });
 
@@ -64,29 +64,25 @@ app.post('/todos', function(req, res) {
 	db.todo.create(body).then(function(todo) {
 		res.json(todo.toJSON());
 	}, function(err) {
-		res.status(400).json(err);
+		res.status(500).json(err);
 	});
 });
 
 app.delete('/todos/:id', function(req, res) {
 	var requested = parseInt(req.params.id);
 
-	db.todo.findById(requested).then(function(todo) {
-		if(todo) {
-			db.todo.destroy({
-				where: {
-					id: requested
-				}
-			}).then(function(num) {
-				res.send('Deleted '+num+' todo(s)');
-			}, function(err) {
-				res.status(400).json(err);
-			});
-		} else {
-			res.send('No todo with this ID');
+	db.todo.destroy({
+		where: {
+			id: requested
+		}
+	}).then(function(num) {
+		if(num === 0) {
+			res.status(404).send();
+		}else {
+			res.send('Deleted '+num+' todo(s)');
 		}
 	}, function(err) {
-		res.status(400).json(err);
+		res.status(500).json(err);
 	});
 });
 
@@ -95,40 +91,27 @@ app.put('/todos/:id', function(req, res) {
 	var body = _.pick(req.body, 'description', 'completed');
 	var validAttributes = {};
 
-	if(body.hasOwnProperty('completed') && _.isBoolean(body.completed)) {
+	if(body.hasOwnProperty('completed')) {
 		validAttributes.completed = body.completed;
-	}else if(body.hasOwnProperty('completed')) {
-		return res.status(400).send('Invalid complete');
 	}
 
-	if(body.hasOwnProperty('description') && _.isString(body.description) && body.description.trim().length > 0) {
+	if(body.hasOwnProperty('description')) {
 		validAttributes.description = body.description.trim();
-	}else if(body.hasOwnProperty('description')) {
-		return res.status(400).send('Invalid description');
 	}
 
 	db.todo.findById(requested).then(function(todo) {
 		if(todo) {
-			db.todo.update(validAttributes, {
-				where: {
-					id: requested
-				},
-				fields: ['description', 'completed']
-			}, function(affected, rows) {
-				if(affected) {
-					res.json(rows);
-				}else {
-					res.send('No rows where affected');
-				}
-			}, function (err) {
-				res.status(400).json(err);
-			});
+			return todo.update(validAttributes);
 		}else {
-			res.send('No todo with this ID');
+			res.status(404).send()
 		}
 	}, function(err) {
+		res.status(500).send();
+	}).then(function(todo) {
+		res.json(todo.toJSON());
+	}, function (err) {
 		res.status(400).json(err);
-	});
+	})
 });
 
 
